@@ -1,34 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:activity=".MainActivity">
+    tools:context=".MainActivity">
 
 
-
-    <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:padding="3dp">
-
-        <TableRow android:padding="3dp">
-
-            <Button
-                android:id="@+id/btn_board_1"
-                android:layout_margin="5dp"
-                android:layout_weight="1"
-                android:height="50dp"
-                android:background="@color/colorBtnBKPJ"
-                android:gravity="center"
-                android:text="12"
-                android:textColor="@color/colorBtnFont"
-                android:textSize="30sp" />
-
-        </TableRow>
-    </TableLayout>
+    <WebView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
 </RelativeLayout>

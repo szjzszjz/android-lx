@@ -1,9 +1,11 @@
 package com.aituolink.smartbox;
 
-import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+
+import android_serialport_api.SerialControl;
+import android_serialport_api.SerialServer;
 
 /**
  * author:szjz
@@ -11,101 +13,98 @@ import android.webkit.WebView;
  */
 public class MyJavascriptInterface {
     private WebView webView;
-    private MyActivity activity;
+    private MainActivity activity;
 
-    public MyJavascriptInterface(MyActivity activity, WebView webView) {
+            public MyJavascriptInterface(MainActivity activity, WebView webView) {
         this.webView = webView;
         this.activity = activity;
     }
 
     /**
-     * 前端代码嵌入js：
-     * imageClick 名应和js函数方法名一致
-     *
-     * @param src 图片的链接
+     * 获取mac地址
      */
     @JavascriptInterface
-    public void imageClick(String src) {
-        Log.e("imageClick", "----点击了图片");
-        Log.e("src", src);
+    public void getMacAddress() {
+
+//        final String macAddress = Public.getLocalMacAddressByIp(activity);
+        final String macAddress1 = Public.getLocalMacAddressByWifi(activity);
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl("javascript:macAddress('" + macAddress1 + "')");
+            }
+        });
+    }
+
+    /** 接收前端传过来的JSESSIONID */
+    @JavascriptInterface
+    public void getJsessionId(String jsessionId) {
+        activity.getJSessionId(jsessionId);
     }
 
     /**
-     * 前端代码嵌入js
-     * 遍历<li>节点
-     *
-     * @param type    <li>节点下type属性的值
-     * @param item_pk item_pk属性的值
+     * 开箱操作
      */
     @JavascriptInterface
-    public void textClick(String type, String item_pk) {
-        if (!TextUtils.isEmpty(type) && !TextUtils.isEmpty(item_pk)) {
-            Log.e("textClick", "----点击了文字");
-            Log.e("type", type);
-            Log.e("item_pk", item_pk);
+    public void openBoxAndroid(final Integer data) {
+        Log.e("openBoxAndroid", String.valueOf(data));
+        //和硬件交互的开箱操作
+        final String result = openBox(1, data);
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl("javascript:openBoxJs('" + result + "')");
+            }
+        });
+    }
+
+
+    /**
+     * 监测柜门的状态主要是关闭
+     */
+    @JavascriptInterface
+    public void boxStatusAndroid(final Integer boxNo, final Integer doorNo) {
+        Log.i("boxNo:", String.valueOf(boxNo));
+        Log.i("doorNo:", String.valueOf(doorNo));
+        //boxStatus: Close/Open
+        final SerialControl.ResultMsg boxStatus = SerialServer.getInstance().IsBoxOpen(boxNo, doorNo, 3000);
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl("javascript:boxStatusJs('" + boxStatus + "')");
+            }
+        });
+    }
+
+    /**
+     * 传入箱体号 和柜子门牌号 即可开箱
+     */
+    private String openBox(Integer boxNo, Integer doorNo) {
+
+        SerialControl.ResultMsg resultMsg = SerialServer.getInstance().OpenBox(boxNo, doorNo, 3000);
+
+        String result = null;
+
+        if (resultMsg.getErrType().equals(SerialControl.ErrorType.No_Error)) {
+            Log.i("1LockTest", "ok");
+            result = "ok";
+//            Toast.makeText(activity.getApplicationContext(), "OK", Toast.LENGTH_SHORT).show();
+        } else {
+
+            if (resultMsg.getErrMsg().length() != 0) {
+                result = resultMsg.getErrMsg();
+                Log.i("2LockTest", resultMsg.getErrMsg());
+//                Toast.makeText(activity.getApplicationContext(), resultMsg.getErrMsg(), Toast.LENGTH_SHORT).show();
+            } else {
+                result = resultMsg.getErrMsgById(resultMsg.getErrType());
+                Log.i("3LockTest", resultMsg.getErrMsgById(resultMsg.getErrType()));
+//                Toast.makeText(activity.getApplicationContext(), resultMsg.getErrMsgById(resultMsg.getErrType()), Toast.LENGTH_SHORT).show();
+            }
+
         }
+        return result;
     }
 
-    /**
-     * 网页使用的js，方法无参数
-     */
-    @JavascriptInterface
-    public void startFunction() {
-        Log.e("startFunction", "----无参");
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                webView.loadUrl("javascript:javacalljs()");
-            }
-        });
-    }
-
-    /**
-     * 网页使用的js，方法有参数，且参数名为data
-     *
-     * @param data 网页js里的参数名
-     */
-//    @JavascriptInterface
-//    public void startFunction(String data) {
-//        Log.e("startFunction", data);
-//        //无参数调用
-//        // 传递参数调用
-//        activity.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                webView.loadUrl("javascript:javacalljswithargs('" + "我是Android传过来的数据" + "')");
-//            }
-//        });
-//
-//    }
-
-    int num = 0;
-    @JavascriptInterface
-    public void clicktitle(final String data) {
-        Log.e("startFunction", data);
-       num ++;
-        //无参数调用
-        // 传递参数调用
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                webView.loadUrl("javascript:updatetitle('" +data+num+ "')");
-            }
-        });
-
-    }
-
-
-//    andoroid 调用vue中的方法：
-//    mounted() {
-//        // 将方法挂载到vue上
-//        window.updatetitle = this.updatetitle;
-//    },
-//    methods: {
-//        // 接收安卓端的方法
-//        updatetitle(data) {
-//            alert(data);
-//            this.title = data;
-//        },
-//    },
 }
