@@ -15,7 +15,7 @@ public class MyJavascriptInterface {
     private WebView webView;
     private MainActivity activity;
 
-            public MyJavascriptInterface(MainActivity activity, WebView webView) {
+    public MyJavascriptInterface(MainActivity activity, WebView webView) {
         this.webView = webView;
         this.activity = activity;
     }
@@ -46,10 +46,10 @@ public class MyJavascriptInterface {
      * 开箱操作
      */
     @JavascriptInterface
-    public void openBoxAndroid(final Integer data) {
-        Log.e("openBoxAndroid", String.valueOf(data));
+    public void openBoxAndroid(final String data) {
+        Log.e("openBoxAndroid", data);
         //和硬件交互的开箱操作
-        final String result = openBox(1, data);
+        final String result = openBox(1, Integer.valueOf(data));
 
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -58,7 +58,6 @@ public class MyJavascriptInterface {
             }
         });
     }
-
 
     /**
      * 监测柜门的状态主要是关闭
